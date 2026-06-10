@@ -3,12 +3,14 @@ import { z } from 'zod';
 export const createReviewSchema = z.object({
   title: z.string().min(3),
   excerpt: z.string().optional(),
+  featured_image: z.string().url().optional(),
   manufacturer: z.string().min(1),
   model: z.string().min(1),
   year: z.number().int().gte(1886),
   content: z.any(),
   rating: z.number().min(0).max(5).optional(),
   status: z.enum(['draft', 'published']).optional(),
+  featured: z.boolean().optional(),
   specs: z.object({
     engine: z.string().optional(),
     horsepower: z.number().optional(),

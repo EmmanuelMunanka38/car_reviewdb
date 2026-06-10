@@ -4,10 +4,18 @@ import { success, error as apiError } from '../utils/apiResponse.js';
 export const ReviewController = {
   async listPublic(req, res, next) {
     try {
-      const page = parseInt(req.query.page) || 1;
-      const limit = parseInt(req.query.limit) || 10;
-      const data = await ReviewService.getPublishedReviews({ page, limit });
-      return success(res, data);
+      const { page, limit, search, manufacturer, minYear, maxYear, minRating, featured } = req.query;
+      const result = await ReviewService.getPublishedReviews({
+        page: parseInt(page) || 1,
+        limit: parseInt(limit) || 10,
+        search,
+        manufacturer,
+        minYear,
+        maxYear,
+        minRating,
+        featured
+      });
+      return success(res, result.data, 200, { page: result.page, limit: result.limit, total: result.total });
     } catch (err) {
       next(err);
     }
@@ -23,9 +31,20 @@ export const ReviewController = {
     }
   },
 
+  async listFeatured(req, res, next) {
+    try {
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const result = await ReviewService.getFeaturedReviews({ page, limit });
+      return success(res, result.data, 200, { page: result.page, limit: result.limit, total: result.total });
+    } catch (err) {
+      next(err);
+    }
+  },
+
   async create(req, res, next) {
     try {
-      const payload = { ...req.body, created_by: req.user.id, created_at: new Date().toISOString() };
+      const payload = { ...req.body, created_by: req.user.id };
       const data = await ReviewService.createReview(payload);
       return success(res, data, 201);
     } catch (err) {
@@ -47,8 +66,18 @@ export const ReviewController = {
   async remove(req, res, next) {
     try {
       const { id } = req.params;
-      const data = await ReviewService.deleteReview(id);
-      return success(res, data, 200);
+      const data = await ReviewService.softDeleteReview(id);
+      return success(res, data);
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async restore(req, res, next) {
+    try {
+      const { id } = req.params;
+      const data = await ReviewService.restoreReview(id);
+      return success(res, data);
     } catch (err) {
       next(err);
     }
@@ -56,10 +85,15 @@ export const ReviewController = {
 
   async adminList(req, res, next) {
     try {
-      const page = parseInt(req.query.page) || 1;
-      const limit = parseInt(req.query.limit) || 20;
-      const data = await ReviewService.adminGetAll({ page, limit });
-      return success(res, data);
+      const { page, limit, status, search, includeDeleted } = req.query;
+      const result = await ReviewService.adminGetAll({
+        page: parseInt(page) || 1,
+        limit: parseInt(limit) || 20,
+        status,
+        search,
+        includeDeleted: includeDeleted === 'true'
+      });
+      return success(res, result.data, 200, { page: result.page, limit: result.limit, total: result.total });
     } catch (err) {
       next(err);
     }
