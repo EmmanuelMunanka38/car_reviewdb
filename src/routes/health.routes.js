@@ -1,5 +1,5 @@
 import express from 'express';
-import { supabase } from '../config/supabase.js';
+import prisma from '../config/prisma.js';
 
 const router = express.Router();
 
@@ -18,8 +18,8 @@ const router = express.Router();
 router.get('/api/health', async (req, res) => {
   const health = { status: 'ok', timestamp: new Date().toISOString(), uptime: process.uptime() };
   try {
-    const { error } = await supabase.from('reviews').select('id').limit(1);
-    health.database = error ? 'error' : 'connected';
+    await prisma.$queryRaw`SELECT 1`;
+    health.database = 'connected';
   } catch {
     health.database = 'error';
   }
