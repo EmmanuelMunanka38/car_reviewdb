@@ -12,12 +12,19 @@ enum ReviewStatus {
   published
 }
 
+enum CommentStatus {
+  approved
+  pending
+  spam
+}
+
 model Profile {
   id         String    @id @default(uuid()) @db.Uuid
-  full_name  String? 
+  full_name  String?
   role       String
   created_at DateTime  @default(now())
   Review     Review[]  @relation("ProfileReviews")
+  Comment    Comment[] @relation("ProfileComments")
 
   @@map("profiles")
 }
@@ -34,14 +41,18 @@ model Review {
   content        Json
   rating         Float?
   status         ReviewStatus   @default(draft)
+  featured       Boolean        @default(false)
+  views          Int            @default(0)
   published_at   DateTime?
   created_by     String         @db.Uuid
   created_at     DateTime       @default(now())
   updated_at     DateTime?
+  deleted_at     DateTime?
 
   profile        Profile        @relation(fields: [created_by], references: [id], name: "ProfileReviews")
   specs          ReviewSpec[]
   gallery        ReviewGallery[]
+  comments       Comment[]
 
   @@map("reviews")
 }
@@ -76,4 +87,20 @@ model ReviewGallery {
   review    Review  @relation(fields: [review_id], references: [id])
 
   @@map("review_gallery")
+}
+
+model Comment {
+  id           String        @id @default(uuid()) @db.Uuid
+  review_id    String        @db.Uuid
+  author_name  String
+  author_email String?
+  body         String
+  status       CommentStatus @default(pending)
+  created_by   String?       @db.Uuid
+  created_at   DateTime      @default(now())
+
+  review       Review        @relation(fields: [review_id], references: [id])
+  profile      Profile?      @relation(fields: [created_by], references: [id], name: "ProfileComments")
+
+  @@map("comments")
 }
