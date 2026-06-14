@@ -1,6 +1,21 @@
 import prisma from '../config/prisma.js';
 import { slugify } from '../utils/slugify.js';
 
+const reviewInclude = {
+  specs: true,
+  gallery: { orderBy: { sort_order: 'asc' } },
+}
+
+function formatReview(review) {
+  if (!review) return null
+  const { specs, gallery, ...rest } = review
+  return {
+    ...rest,
+    specs: specs?.[0] || null,
+    gallery: gallery || [],
+  }
+}
+
 export const ReviewService = {
   async createReview(payload) {
     const { specs, gallery, ...reviewData } = payload;
@@ -14,9 +29,9 @@ export const ReviewService = {
         specs: specs ? { create: specs } : undefined,
         gallery: gallery ? { create: gallery } : undefined
       },
-      include: { specs: true, gallery: true }
+      include: reviewInclude
     });
-    return data;
+    return formatReview(data);
   },
 
   async updateReview(id, payload) {
@@ -36,26 +51,28 @@ export const ReviewService = {
       return tx.review.update({
         where: { id },
         data: { ...reviewData, updated_at: new Date() },
-        include: { specs: true, gallery: true }
+        include: reviewInclude
       });
     });
-    return data;
+    return formatReview(data);
   },
 
   async softDeleteReview(id) {
     const data = await prisma.review.update({
       where: { id },
-      data: { deleted_at: new Date(), updated_at: new Date() }
+      data: { deleted_at: new Date(), updated_at: new Date() },
+      include: reviewInclude
     });
-    return data;
+    return formatReview(data);
   },
 
   async restoreReview(id) {
     const data = await prisma.review.update({
       where: { id },
-      data: { deleted_at: null, updated_at: new Date() }
+      data: { deleted_at: null, updated_at: new Date() },
+      include: reviewInclude
     });
-    return data;
+    return formatReview(data);
   },
 
   async getPublishedReviews({ page = 1, limit = 10, search, manufacturer, minYear, maxYear, minRating, featured } = {}) {
@@ -82,16 +99,18 @@ export const ReviewService = {
         where,
         orderBy: { published_at: 'desc' },
         skip,
-        take: limit
+        take: limit,
+        include: reviewInclude
       }),
       prisma.review.count({ where })
     ]);
-    return { data, total, page, limit };
+    return { data: data.map(formatReview), total, page, limit };
   },
 
   async getReviewBySlug(slug) {
     const data = await prisma.review.findFirst({
-      where: { slug, status: 'published', deleted_at: null }
+      where: { slug, status: 'published', deleted_at: null },
+      include: reviewInclude
     });
 
     if (data) {
@@ -101,7 +120,7 @@ export const ReviewService = {
       });
     }
 
-    return data;
+    return formatReview(data);
   },
 
   async getFeaturedReviews({ page = 1, limit = 10 } = {}) {
@@ -113,11 +132,12 @@ export const ReviewService = {
         where,
         orderBy: { published_at: 'desc' },
         skip,
-        take: limit
+        take: limit,
+        include: reviewInclude
       }),
       prisma.review.count({ where })
     ]);
-    return { data, total, page, limit };
+    return { data: data.map(formatReview), total, page, limit };
   },
 
   async adminGetAll({ page = 1, limit = 20, status, search, includeDeleted } = {}) {
@@ -139,11 +159,12 @@ export const ReviewService = {
         where,
         orderBy: { created_at: 'desc' },
         skip,
-        take: limit
+        take: limit,
+        include: reviewInclude
       }),
       prisma.review.count({ where })
     ]);
-    return { data, total, page, limit };
+    return { data: data.map(formatReview), total, page, limit };
   },
 
   async getAllForSitemap() {
