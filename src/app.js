@@ -9,6 +9,8 @@ import adminRoutes from './routes/admin.routes.js';
 import uploadRoutes from './routes/upload.routes.js';
 import healthRoutes from './routes/health.routes.js';
 import sitemapRoutes from './routes/sitemap.routes.js';
+import newsRoutes from './routes/news.routes.js';
+import authRoutes from './routes/auth.routes.js';
 import { errorHandler } from './middlewares/error.middleware.js';
 import { swaggerSpec } from './config/swagger.js';
 import logger from './utils/logger.js';
@@ -48,6 +50,8 @@ app.use(sitemapRoutes);
 app.use(publicRoutes);
 app.use(adminRoutes);
 app.use(uploadRoutes);
+app.use(newsRoutes);
+app.use(authRoutes);
 
 app.use((err, req, res, next) => {
   if (!err) return next();
