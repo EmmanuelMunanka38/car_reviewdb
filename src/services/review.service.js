@@ -82,7 +82,11 @@ export const ReviewService = {
         where,
         orderBy: { published_at: 'desc' },
         skip,
-        take: limit
+        take: limit,
+        include: {
+          specs: true,
+          gallery: { orderBy: { sort_order: 'asc' } }
+        }
       }),
       prisma.review.count({ where })
     ]);
@@ -91,7 +95,11 @@ export const ReviewService = {
 
   async getReviewBySlug(slug) {
     const data = await prisma.review.findFirst({
-      where: { slug, status: 'published', deleted_at: null }
+      where: { slug, status: 'published', deleted_at: null },
+      include: {
+        specs: true,
+        gallery: { orderBy: { sort_order: 'asc' } }
+      }
     });
 
     if (data) {
@@ -113,7 +121,11 @@ export const ReviewService = {
         where,
         orderBy: { published_at: 'desc' },
         skip,
-        take: limit
+        take: limit,
+        include: {
+          specs: true,
+          gallery: { orderBy: { sort_order: 'asc' } }
+        }
       }),
       prisma.review.count({ where })
     ]);
