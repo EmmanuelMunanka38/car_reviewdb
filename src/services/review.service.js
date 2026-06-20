@@ -103,10 +103,10 @@ export const ReviewService = {
         include: {
           specs: true,
           gallery: { orderBy: { sort_order: 'asc' } }
-        }
+        },
         include: reviewInclude
       }),
-      prisma.review.count({ where })
+      prisma.review.count({ where }),
     ]);
     return { data: data.map(formatReview), total, page, limit };
   },
@@ -117,7 +117,7 @@ export const ReviewService = {
       include: {
         specs: true,
         gallery: { orderBy: { sort_order: 'asc' } }
-      }
+      },
       include: reviewInclude
     });
 
@@ -126,7 +126,7 @@ export const ReviewService = {
         where: { id: data.id },
         data: { views: (data.views || 0) + 1 }
       });
-    }
+    } 
 
     return formatReview(data);
   },
@@ -144,7 +144,7 @@ export const ReviewService = {
         include: {
           specs: true,
           gallery: { orderBy: { sort_order: 'asc' } }
-        }
+        },
         include: reviewInclude
       }),
       prisma.review.count({ where })
